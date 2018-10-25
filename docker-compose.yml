@@ -1,0 +1,44 @@
+version: '3'
+services:
+    db:
+        build: 
+            context: ./mysql
+            dockerfile: Dockerfile
+        volumes:
+            - ./mysql/data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: javatribe
+            MYSQL_USER: score
+            MYSQL_PASSWORD: javatribe
+        ports:
+            - "3306:3306"
+        restart: always
+        privileged: true
+    redis:
+        image: redis
+        restart: always
+        ports:
+            - "6379:6379"
+    app:
+        build: java
+        restart: always
+        ports:
+            - "8080:80"
+        expose:
+            - "8080"
+        depends_on:
+            - db
+            - redis
+        command: java -jar /opt/app/app.jar 
+    nginx:
+        build: nginx
+        volumes:
+            - ./nginx/html:/usr/share/nginx/html
+        restart: always
+        ports:
+            - "80:80"
+        expose:
+            - "80" 
+        privileged: true
+        depends_on:
+            - app
